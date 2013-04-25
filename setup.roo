@@ -1,0 +1,95 @@
+// *******************************************************************
+// Author: Richard McIntosh
+// Project: NMHU Schedule It!
+// Date: 4/19/2013
+// ******************************************************************* 
+//
+// Course scheduling web app for Database Management class
+// with Neo4j backend --> use Spring-Roo for project scaffolding
+// so much more boss!
+// ******************************************************************* 
+
+// accept our terms of use like good kiddies
+download accept terms of use
+
+// create top level project package 
+project --projectName SpringRooProject --topLevelPackage com.mcintosh.SpringRooProject --packaging war
+
+// set up backend store to be neo4j and set store location 
+graph setup --provider NEO4J --databaseLocation data/DataStore
+
+// enum for days of the 
+enum type --class ~.util.WeekDays
+enum constant --name SUNDAY
+enum constant --name MONDAY
+enum constant --name TUESDAY
+enum constant --name WEDNESDAY
+enum constant --name THURSDAY
+enum constant --name FRIDAY
+enum constant --name SATURDAY
+
+// *******************************************************************
+// create Student domain entity
+// *******************************************************************
+graph entity --class ~.model.Student
+	
+	field string  firstName 
+	field string  lastName
+	// regexp BLATANTLY stolen from Lajos Popp => great tutorial man :)
+	field string email --regexp "[a-zA-Z0-9]+@[a-zA-Z0-9]+\.[a-zA-Z0-9]+" --notNull
+	
+// *******************************************************************
+// create Schedule domain entity
+// *******************************************************************
+graph entity --class ~.model.Schedule
+	
+	field string name
+
+// *******************************************************************
+// create Course domain entity
+// *******************************************************************
+graph entity --class ~.model.Course
+	
+	field string title 
+	field string description 
+
+	field number courseId --type java.lang.Integer   --permitReservedWords --primitive
+	field number sectionId --type java.lang.Integer  --permitReservedWords --primitive
+	field number numCredits --type java.lang.Integer --permitReservedWords --primitive	
+	
+// *******************************************************************
+// create Department domain entity
+// *******************************************************************
+graph entity --class ~.model.Department
+	
+	field string name
+
+// *******************************************************************
+// create relationships
+// *******************************************************************
+
+// create relationship Schedule-(INCLUDES)-> Course
+graph relationship --to Course --from Schedule --fieldName courses --type INCLUDES --cardinality ONE_TO_MANY
+
+// create relationship Student-(HAS_A)->Schedule
+graph relationship --to Schedule --from Student --fieldName schedules --type HAS_A --cardinality ONE_TO_MANY 
+
+// create relationship Course-(REQUIRES)->Course
+graph relationship --to Course --from Course --fieldName prereqs --type REQUIRES --cardinality ONE_TO_MANY
+
+// create relationship Department-[HAS_A]->Course
+graph relationship --to Course --from Department --fieldName courses --type HAS_A --cardinality ONE_TO_MANY
+
+// create relationship Student-[NEEDS_TO_TAKE]->Course
+graph relationship --to Course --from Student --fieldName reqCourses --type NEEDS_TO_TAKE --cardinality
+
+web mvc setup
+
+web mvc scaffold --class ~.web.StudentController --backingType Student
+web mvc scaffold --class ~.web.CourseController --backingType Course
+web mvc scaffold --class ~.web.DepartmentController --backingType Department
+web mvc scaffold --class ~.web.ScheduleController --backingType Schedule
+
+
+
+
